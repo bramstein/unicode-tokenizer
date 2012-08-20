@@ -1,0 +1,277 @@
+#!/usr/bin/env node
+
+var parse = require('../lib/parse-data'),
+    async = require('async'),
+    optimist = require('optimist'),
+    argv = optimist
+        .usage('usage: $0 [options] file')
+        .wrap(80)
+        .options('c', {
+            alias: 'exclude-control-codes',
+            description: 'Exclude control characters from the generated tokenizer',
+            boolean: true
+        })
+        .options('e', {
+            alias: 'exclude-classes',
+            description: 'Exclude these character classes when generating the tokenizer'
+        })
+        .options('i', {
+            alias: 'include-ranges',
+            description: 'Only include these character ranges when generating the tokenizer'
+        })
+        .options('h', {
+            alias: 'help',
+            boolean: true
+        })
+        .argv;
+
+// Returns true if the code point is within 0000-001F and 007F-009F
+function isControlCharacter(c) {
+    return c <= 0x001F || (c >= 0x007F && c <= 0x009F);
+}
+
+function highSurrogate(codePoint) {
+    return Math.floor((codePoint - 0x10000) / 0x400) + 0xD800;
+}
+
+function lowSurrogate(codePoint) {
+    return (codePoint - 0x10000) % 0x400 + 0xDC00;
+}
+
+function unicodeEscape(codePoint) {
+    if (codePoint <= 0xFFFF) {
+        return '\\u' + (codePoint + 0x10000).toString(16).substr(-4).toUpperCase();
+    } else {
+        throw 'Code point outside BMP cannot be encoded.';
+    }
+}
+
+function codePointToString(codePoint) {
+    // We can print a-zA-Z0-9 directly
+    if ((codePoint >= 0x41 && codePoint <= 0x5A) || (codePoint >= 0x61 && codePoint <= 0x7A) || (codePoint >= 0x30 && codePoint <= 0x39)) {
+        return String.fromCharCode(codePoint);
+    } else if (codePoint <= 0xFFFF) {
+        // Anything inside the BMP can be escaped as usual
+        return unicodeEscape(codePoint);
+    } else {
+        // Outside the BMP we generate surrogate pairs
+        return unicodeEscape(highSurrogate(codePoint)) + unicodeEscape(lowSurrogate(codePoint));
+    }
+}
+
+function collapseRanges(values) {
+    var result = [];
+
+    values.forEach(function(current, index) {
+        var previous = null,
+            next = null;
+
+        if (index > 0) {
+            previous = values[index - 1];
+        } else {
+            previous = null;
+        }
+
+        if (index < values.length - 1) {
+            next = values[index + 1];
+        } else {
+            next = null;
+        }
+
+        if ((current - 1 !== previous || previous === null) && (current + 1 !== next || next === null)) {
+            result.push(current);
+        } else if ((current - 1 !== previous || previous === null) && (current + 1 === next || next === null)) {
+            result.push(current);
+        } else if ((current - 1 === previous || previous === null) && (current + 1 !== next || next === null)) {
+            // Don't bother collapsing the range if it is only two code points
+            if (current - result[result.length - 1] > 1) {
+                result[result.length - 1] = [result[result.length - 1], current];
+            } else {
+                result.push(current);
+            }
+        }
+    });
+    return result;
+}
+
+function createRange(values) {
+    var result = '';
+
+    collapseRanges(values).forEach(function(value) {
+        if (Array.isArray(value)) {
+            result += codePointToString(value[0]) + '-' + codePointToString(value[1]);
+        } else {
+            result += codePointToString(value);
+        }
+    });
+
+    return result !== '' ? '[' + result + ']' : '';
+}
+
+if (argv.help || !argv._[0]) {
+    optimist.showHelp();
+} else {
+    var tasks = [];
+
+    tasks.push(function(done) {
+        if (argv['include-ranges']) {
+            parse(argv['include-ranges'], done);
+        } else {
+            done(null, [{value: ['0', '10FFFF']}]);
+        }
+    });
+
+    tasks.push(function(done) {
+        if (argv['exclude-classes']) {
+            parse(argv['exclude-classes'], done);
+        } else {
+            done(null, [{value: 'XX'}]);
+        }
+    });
+
+    tasks.push(function(done) {
+        parse(argv._[0], done);
+    });
+
+    async.parallel(tasks, function(err, results) {
+        if (err) {
+            console.error(err);
+            process.exit(1);
+        } else {
+            var includeRanges = results[0],
+                excludeClasses = results[1].map(function(c) {
+                    return c.value;
+                }),
+                data = results[2],
+                excludeControlCodes = !!argv.c,
+                classes = {},
+                result = {};
+
+            // Parse all code points in our data
+            data.forEach(function(item) {
+                if (Array.isArray(item.value)) {
+                    item.value[0] = parseInt(item.value[0], 16);
+                    item.value[1] = parseInt(item.value[1], 16);
+                } else {
+                    item.value = parseInt(item.value, 16);
+                }
+            });
+
+            // Parse all code points in our included ranges
+            includeRanges.forEach(function(item) {
+                if (Array.isArray(item.value)) {
+                    item.value[0] = parseInt(item.value[0], 16);
+                    item.value[1] = parseInt(item.value[1], 16);
+                } else {
+                    item.value = parseInt(item.value, 16);
+                }
+            });
+
+            // Remove control codes if required
+            if (excludeControlCodes) {
+                data = data.filter(function(item) {
+                    if (Array.isArray(item.value)) {
+                        return !isControlCharacter(item.value[0]) && !isControlCharacter(item.value[1]);
+                    } else {
+                        return !isControlCharacter(item.value);
+                    }
+                });
+            }
+
+            // Only include ranges that we explicitly specified
+            data = data.filter(function(item) {
+                return includeRanges.some(function (range) {
+                    var start = range.value[0],
+                        end = range.value[1];
+
+                    if (Array.isArray(item.value)) {
+                        return item.value[0] <= end && item.value[1] >= start;
+                    } else {
+                        return item.value >= start && item.value <= end;
+                    }
+                });
+            });
+
+            // Filter out classes we are not interested in
+            data = data.filter(function(item) {
+                return excludeClasses.indexOf(item.type) === -1;
+            });
+
+            // Expand the ranges and store them in an object indexed by class
+            data.forEach(function(item) {
+                if (!classes.hasOwnProperty(item.type)) {
+                    classes[item.type] = [];
+                }
+
+                if (Array.isArray(item.value)) {
+                    for (var i = item.value[0]; i < item.value[1] + 1; i += 1) {
+                        classes[item.type].push(i);
+                    }
+                } else {
+                    classes[item.type].push(item.value);
+                }
+            });
+
+            // Sort each range
+            Object.keys(classes).forEach(function(className) {
+                classes[className].sort(function(a, b) {
+                    return a - b;
+                });
+            });
+
+            Object.keys(classes).forEach(function(className) {
+                var result = [],
+                    bmp = [],
+                    supplementary = {},
+                    surrogates = [],
+                    highSurrogates = {},
+                    lowSurrogates = {};
+
+                classes[className].forEach(function(codePoint) {
+                    if (codePoint >= 0xD800 && codePoint <= 0xDBFF) {
+                        surrogates.push(codePoint);
+                    } else if (codePoint <= 0xFFFF) {
+                        bmp.push(codePoint);
+                    } else {
+                        // Expand supplementary ranges into lead and trail surrogate pairs
+                        var high = highSurrogate(codePoint),
+                            low = lowSurrogate(codePoint);
+
+                        if (!supplementary.hasOwnProperty(high)) {
+                            supplementary[high] = [];
+                        }
+                        supplementary[high].push(low);
+                    }
+                });
+
+                highSurrogates = Object.keys(supplementary);
+                highSurrogates.forEach(function(high) {
+                    var lowRange = createRange(supplementary[high]);
+
+                    if (!lowSurrogates.hasOwnProperty(lowRange)) {
+                        lowSurrogates[lowRange] = [];
+                    }
+                    lowSurrogates[lowRange] = lowSurrogates[lowRange].concat(high);
+                });
+
+                if (bmp.length) {
+                    result.push(createRange(bmp));
+                }
+
+                Object.keys(lowSurrogates).forEach(function(low) {
+                    var high = lowSurrogates[low];
+                    result.push(createRange(high) + low);
+                });
+
+                if (surrogates.length) {
+                    result.push(createRange(surrogates));
+                }
+
+                classes[className] = result.join('|');
+            });
+            console.log('// This file is auto-generated. Do not modify.');
+            console.log('module.exports = ' + JSON.stringify(classes, null, 2) + ';');
+            process.exit(0);
+        }
+    });
+}

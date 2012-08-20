@@ -1,0 +1,12 @@
+{
+    "name": "unicode-tokenizer",
+    "author": "Bram Stein <b.l.stein@gmail.com>",
+    "version": "0.0.1",
+    "dependencies": {
+        "optimist": "0.3.4",
+        "async": "0.1.22"
+    },
+    "devDependencies": {
+        "vows": "=0.5.11"
+    }
+}

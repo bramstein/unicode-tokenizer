@@ -1,0 +1,27 @@
+0000..007F # Basic latin
+0080..00FF # Latin-1 Supplement
+0100..017F # Latin Extended-A
+0180..024F # Latin Extended-B
+02B0..02FF # Spacing Modifier Letters
+0300..036F # Combining Diacritical Marks
+2000..206F # General Punctuation
+2070..209F # Superscripts and Subscripts
+20A0..20CF # Currency Symbols
+2100..214F # Letterlike Symbols
+2150..218F # Number forms
+2190..21FF # Arrows
+2200..22FF # Mathematical Operators
+2300..23FF # Miscellaneous Technical
+2460..24FF # Enclosed Alphanumerics
+25A0..25FF # Geometric Shapes
+2600..26FF # Miscellaneous Symbols
+2700..27BF # Dingbats
+27C0..27EF # Miscellaneous Mathematical Symbols-A
+27F0..27FF # Supplemental Arrows-A
+2900..297F # Supplemental Arrows-B
+2980..29FF # Miscellaneous Mathematical Symbols-B
+2A00..2AFF # Supplemental Mathematical Operators
+2B00..2BFF # Miscellaneous Symbols and Arrows
+2C60..2C7F # Latin Extended-C
+2E00..2E7F # Supplemental Punctuation
+A720..A7FF # Latin Extended-D

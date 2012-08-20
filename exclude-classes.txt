@@ -1,0 +1,14 @@
+AI # Ambiguous (Alphabetic or Ideographic): East Asian legacy
+CB # Contingent Break Opportunity
+CJ # Conditional Japanese Starter
+CM # Combining Mark
+H2 # Hangul LV Syllable
+H3 # Hangul LVT Syllable
+ID # Ideographic
+HL # Hebrew Letter
+JL # Hangul L Jamo
+JT # Hangul T Jamo
+JV # Hangul V Jamo
+SA # Complex-Context Dependent
+SG # Surrogate
+XX # Unknown
