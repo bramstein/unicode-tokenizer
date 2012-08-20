@@ -1,7 +1,18 @@
 {
     "name": "unicode-tokenizer",
-    "author": "Bram Stein <b.l.stein@gmail.com>",
-    "version": "0.0.1",
+    "description": "Unicode Tokenizer natural language tokenizer for line breaking.",
+    "author": "Bram Stein <b.l.stein@gmail.com> (http://www.bramstein.com)",
+    "version": "0.0.2",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/bramstein/unicode-tokenizer.git"
+    },
+    "keywords": ["tokenizer", "tokens", "unicode", "line breaking", "tr14", "natural language processing", "nlp"],
+    "main": "./lib/Tokenizer",
+    "directories": {
+        "lib": "./lib",
+        "bin": "./bin"
+    },
     "dependencies": {
         "optimist": "0.3.4",
         "async": "0.1.22"
