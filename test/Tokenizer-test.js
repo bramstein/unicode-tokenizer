@@ -64,10 +64,10 @@ vows.describe('Tokenizer').addBatch({
             assert.equal(results[3][1], ' ');
         },
         'have the correct token class': function(err, results) {
-            assert.equal(results[0][0], 'AL');
-            assert.equal(results[1][0], 'NU');
-            assert.equal(results[2][0], 'EX');
-            assert.equal(results[3][0], 'SP');
+            assert.equal(results[0][0], Tokenizer.TokenClass.AL);
+            assert.equal(results[1][0], Tokenizer.TokenClass.NU);
+            assert.equal(results[2][0], Tokenizer.TokenClass.EX);
+            assert.equal(results[3][0], Tokenizer.TokenClass.SP);
         }
     },
     'tokenizes over multiple chunks': {
@@ -97,10 +97,10 @@ vows.describe('Tokenizer').addBatch({
             assert.equal(results[3][1], '!');
         },
         'have the correct token class': function(err, results) {
-            assert.equal(results[0][0], 'AL');
-            assert.equal(results[1][0], 'SP');
-            assert.equal(results[2][0], 'AL');
-            assert.equal(results[3][0], 'EX');
+            assert.equal(results[0][0], Tokenizer.TokenClass.AL);
+            assert.equal(results[1][0], Tokenizer.TokenClass.SP);
+            assert.equal(results[2][0], Tokenizer.TokenClass.AL);
+            assert.equal(results[3][0], Tokenizer.TokenClass.EX);
         }
     },
     'handles tokens outside what the tokenizer is built for': {
@@ -117,7 +117,7 @@ vows.describe('Tokenizer').addBatch({
             assert.isNotNull(results);
         },
         'token correctly classified as unknown': function(err, results) {
-            assert.equal(results[0], 'XX');
+            assert.equal(results[0], Tokenizer.TokenClass.XX);
         }
     }
 }).export(module);
