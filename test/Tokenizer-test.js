@@ -44,7 +44,7 @@ vows.describe('Tokenizer').addBatch({
                 that = this,
                 results = [];
 
-            tokenizer.on('data', function() {
+            tokenizer.on('token', function() {
                 results.push(arguments);
             });
 
@@ -64,10 +64,10 @@ vows.describe('Tokenizer').addBatch({
             assert.equal(results[3][0], ' ');
         },
         'have the correct token class': function(err, results) {
-            assert.equal(results[0][1], Tokenizer.TokenClass.AL);
-            assert.equal(results[1][1], Tokenizer.TokenClass.NU);
-            assert.equal(results[2][1], Tokenizer.TokenClass.EX);
-            assert.equal(results[3][1], Tokenizer.TokenClass.SP);
+            assert.equal(results[0][1], Tokenizer.Type.AL);
+            assert.equal(results[1][1], Tokenizer.Type.NU);
+            assert.equal(results[2][1], Tokenizer.Type.EX);
+            assert.equal(results[3][1], Tokenizer.Type.SP);
         }
     },
     'tokenizes over multiple chunks': {
@@ -77,7 +77,7 @@ vows.describe('Tokenizer').addBatch({
                 generator = null,
                 results = [];
 
-            stream.on('data', function() {
+            stream.on('token', function() {
                 results.push(arguments);
             });
 
@@ -97,10 +97,10 @@ vows.describe('Tokenizer').addBatch({
             assert.equal(results[3][0], '!');
         },
         'have the correct token class': function(err, results) {
-            assert.equal(results[0][1], Tokenizer.TokenClass.AL);
-            assert.equal(results[1][1], Tokenizer.TokenClass.SP);
-            assert.equal(results[2][1], Tokenizer.TokenClass.AL);
-            assert.equal(results[3][1], Tokenizer.TokenClass.EX);
+            assert.equal(results[0][1], Tokenizer.Type.AL);
+            assert.equal(results[1][1], Tokenizer.Type.SP);
+            assert.equal(results[2][1], Tokenizer.Type.AL);
+            assert.equal(results[3][1], Tokenizer.Type.EX);
         }
     },
     'handles tokens outside what the tokenizer is built for': {
@@ -108,7 +108,7 @@ vows.describe('Tokenizer').addBatch({
             var tokenizer = new Tokenizer(),
                 that = this;
 
-            tokenizer.on('data', function(token, tokenClass) {
+            tokenizer.on('token', function(token, tokenClass) {
                 that.callback(null, [token, tokenClass]);
             });
             tokenizer.write('\uD834\uDF06');
@@ -117,7 +117,7 @@ vows.describe('Tokenizer').addBatch({
             assert.isNotNull(results);
         },
         'token correctly classified as unknown': function(err, results) {
-            assert.equal(results[1], Tokenizer.TokenClass.XX);
+            assert.equal(results[1], Tokenizer.Type.XX);
         }
     }
 }).export(module);
