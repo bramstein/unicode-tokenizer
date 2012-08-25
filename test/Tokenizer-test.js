@@ -21,6 +21,23 @@ function createTestStream(chunks, interval) {
     return stream;
 }
 
+function tokenize(str, callback) {
+    var tokenizer = new Tokenizer(),
+        that = this,
+        results = [];
+
+    tokenizer.on('token', function(token, tokenClass) {
+        results.push(arguments);
+    });
+
+    tokenizer.on('end', function() {
+        callback(null, results);
+    });
+
+    tokenizer.write(str);
+    tokenizer.end();
+}
+
 vows.describe('Tokenizer').addBatch({
     'is a stream': {
         topic:  new Tokenizer(),
@@ -101,6 +118,22 @@ vows.describe('Tokenizer').addBatch({
             assert.equal(results[1][1], Tokenizer.Type.SP);
             assert.equal(results[2][1], Tokenizer.Type.AL);
             assert.equal(results[3][1], Tokenizer.Type.EX);
+        }
+    },
+    'parentheses': {
+        topic: function() {
+            tokenize("require('file');", this.callback);
+        },
+        'received seven tokens': function(err, results) {
+            assert.lengthOf(results, 7);
+        }
+    },
+    'angle brackets (AL, AL)': {
+        topic: function() {
+            tokenize('<b', this.callback);
+        },
+        'received one token': function(err, results) {
+            assert.lengthOf(results, 1);
         }
     },
     'handles tokens outside what the tokenizer is built for': {
