@@ -8,7 +8,7 @@
         "url": "git://github.com/bramstein/unicode-tokenizer.git"
     },
     "keywords": ["tokenizer", "tokens", "unicode", "line breaking", "tr14", "natural language processing", "nlp"],
-    "main": "./lib/Tokenizer",
+    "main": "./lib/index",
     "directories": {
         "lib": "./lib",
         "bin": "./bin"
