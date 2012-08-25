@@ -4,20 +4,23 @@ This is a tokenizer that tokenizes text into the line breaking classes defined b
 
 Usage:
 
-    var Tokenizer = require('Tokenizer'),
-        tokenizer = new Tokenizer();
+    var t = require('unicode-tokenizer'),
+        tokenizer = t.createTokenizerStream();
 
-    tokenizer.on('data', function(tokenClass, token) {
-        console.log(tokenClass, token);
+    tokenizer.on('token', function(token, type, action) {
+        console.log(token, type, action);
     });
 
     tokenizer.write('Hello World!');
     tokenizer.end();
 
-The `Tokenizer` class is a valid Node.js `Stream` so it can be used with other streams:
+The `Tokenizer` returned by `createTokenizerStream` is a valid Node.js `Stream` so it can be used with other streams:
 
     process.stdin.pipe(tokenizer);
     tokenizer.pipe(process.stdout);
+    process.stdin.resume();
+
+Note that in order to receive the token type and break action, you'll need to listen to the `token` event instead of the `data` event, which will only give you the token.
 
 ## Unicode support
 
