@@ -1,0 +1,9 @@
+{
+  "name": "unicode-tokenizer-example",
+  "version": "0.0.1",
+  "author": "Bram Stein <b.l.stein@gmail.com> (http://www.bramstein.com/)",
+  "private": true,
+  "dependencies": {
+    "unicode-tokenizer": "=0.0.4"
+  }
+}
