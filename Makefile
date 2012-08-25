@@ -2,7 +2,6 @@ PATH:=./node_modules/.bin/:./bin/:${PATH}
 
 lib/tokens.js: LineBreak.txt exclude-classes.txt include-ranges.txt bin/generate-tokens
 	generate-tokens \
-		--exclude-control-codes \
 		--exclude-classes exclude-classes.txt \
 		--include-ranges include-ranges.txt \
 		LineBreak.txt > $@
