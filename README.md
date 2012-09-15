@@ -30,4 +30,4 @@ The `Tokenizer` returned by `createTokenizerStream` is also a valid Node.js `Str
 
 ## Unicode support
 
-The full range of Unicode code points are supported by this tokenizer. However the default installation only tokenizes selected portions of the [Basic Multilingual Plane](http://en.wikipedia.org/wiki/Basic_Multilingual_Plane#Basic_Multilingual_Plane) roughly corresponding to most western scripts and math symbols. To generate a tokenizer that can tokenize the whole Unicode range or a subset modify the `included-ranges.txt` and `excluded-classes.txt` and run the Makefile.
+The full range of Unicode code points are supported by this tokenizer. If you however only want to tokenize selected portions of the Unicode standard, such as the [Basic Multilingual Plane](http://en.wikipedia.org/wiki/Basic_Multilingual_Plane#Basic_Multilingual_Plane), you can subset the supported Unicode range. To generate a subsetted tokenizer, modify the `included-ranges.txt` and `excluded-classes.txt` files, and use the `--include-ranges` and `--exclude-classes` command line options on the `generate-tokens` script.
