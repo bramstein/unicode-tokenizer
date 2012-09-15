@@ -1,8 +1,8 @@
 {
     "name": "unicode-tokenizer",
-    "description": "Unicode Tokenizer natural language tokenizer for line breaking.",
+    "description": "Unicode Tokenizer for line breaking.",
     "author": "Bram Stein <b.l.stein@gmail.com> (http://www.bramstein.com)",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "repository": {
         "type": "git",
         "url": "git://github.com/bramstein/unicode-tokenizer.git"
