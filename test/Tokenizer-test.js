@@ -136,7 +136,7 @@ vows.describe('Tokenizer').addBatch({
             assert.lengthOf(results, 1);
         }
     },
-    'handles tokens outside what the tokenizer is built for': {
+    'handles surrogate pairs': {
         topic: function() {
             var tokenizer = new Tokenizer(),
                 that = this;
@@ -145,6 +145,23 @@ vows.describe('Tokenizer').addBatch({
                 that.callback(null, [token, tokenClass]);
             });
             tokenizer.write('\uD834\uDF06');
+        },
+        'received one token': function(err, results) {
+            assert.isNotNull(results);
+        },
+        'token correctly classified as SG': function(err, results) {
+            assert.equal(results[1], Tokenizer.Type.SG);
+        }
+    },
+    'handles tokens outside what the tokenizer is built for': {
+        topic: function() {
+            var tokenizer = new Tokenizer(),
+                that = this;
+
+            tokenizer.on('token', function(token, tokenClass) {
+                that.callback(null, [token, tokenClass]);
+            });
+            tokenizer.write('\uF8FF');
         },
         'received one token': function(err, results) {
             assert.isNotNull(results);
