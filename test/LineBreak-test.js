@@ -1,7 +1,8 @@
 var vows = require('vows'),
     assert = require('assert'),
     Stream = require('stream').Stream,
-    Tokenizer = require('../lib/Tokenizer'),
+    TokenType = require('../lib/TokenType'),
+    BreakType = require('../lib/BreakType'),
     LineBreak = require('../lib/LineBreak');
 
 function createInput(tokens) {
@@ -40,109 +41,109 @@ vows.describe('LineBreak').addBatch({
         }
     },
     'handles a single token': {
-        topic: createInput([[1, Tokenizer.Type.SP]]),
+        topic: createInput([[1, TokenType.SP]]),
         'correct number of tokens': function(result) {
             assert.lengthOf(result, 1);
         },
         'correct token, tokenClass and break action': function(result) {
             assert.equal(result[0][0], 1);
-            assert.equal(result[0][1], Tokenizer.Type.SP);
-            assert.equal(result[0][2], LineBreak.Type.EXPLICIT);
+            assert.equal(result[0][1], TokenType.SP);
+            assert.equal(result[0][2], BreakType.EXPLICIT);
         }
     },
     'handles two tokens': {
         topic: createInput([
-            [1, Tokenizer.Type.AL],
-            [2, Tokenizer.Type.AL]
+            [1, TokenType.AL],
+            [2, TokenType.AL]
         ]),
         'correct number of tokens': function(result) {
             assert.lengthOf(result, 2);
         },
         'correct token, tokenClass and break action': breakAs([
-            [1, Tokenizer.Type.AL, LineBreak.Type.PROHIBITED],
-            [2, Tokenizer.Type.AL, LineBreak.Type.EXPLICIT]
+            [1, TokenType.AL, BreakType.PROHIBITED],
+            [2, TokenType.AL, BreakType.EXPLICIT]
         ])
     },
     'handles direct breaks (AL, B2, AL)': {
         topic: createInput([
-            [1, Tokenizer.Type.AL],
-            [2, Tokenizer.Type.B2],
-            [3, Tokenizer.Type.AL]
+            [1, TokenType.AL],
+            [2, TokenType.B2],
+            [3, TokenType.AL]
         ]),
         'correct token, tokenClass and break action': breakAs([
-            [1, Tokenizer.Type.AL, LineBreak.Type.DIRECT],
-            [2, Tokenizer.Type.B2, LineBreak.Type.DIRECT],
-            [3, Tokenizer.Type.AL, LineBreak.Type.EXPLICIT]
+            [1, TokenType.AL, BreakType.DIRECT],
+            [2, TokenType.B2, BreakType.DIRECT],
+            [3, TokenType.AL, BreakType.EXPLICIT]
         ])
     },
     'handles explicit breaks (AL, NL, AL, AL)': {
         topic: createInput([
-            [1, Tokenizer.Type.AL],
-            [2, Tokenizer.Type.NL],
-            [3, Tokenizer.Type.AL],
-            [4, Tokenizer.Type.AL]
+            [1, TokenType.AL],
+            [2, TokenType.NL],
+            [3, TokenType.AL],
+            [4, TokenType.AL]
         ]),
         'correct token, tokenClass and break action': breakAs([
-            [1, Tokenizer.Type.AL, LineBreak.Type.PROHIBITED],
-            [2, Tokenizer.Type.NL, LineBreak.Type.EXPLICIT],
-            [3, Tokenizer.Type.AL, LineBreak.Type.PROHIBITED],
-            [4, Tokenizer.Type.AL, LineBreak.Type.EXPLICIT]
+            [1, TokenType.AL, BreakType.PROHIBITED],
+            [2, TokenType.NL, BreakType.EXPLICIT],
+            [3, TokenType.AL, BreakType.PROHIBITED],
+            [4, TokenType.AL, BreakType.EXPLICIT]
         ])
     },
     'handles prohibited breaks (AL, AL, AL)': {
         topic: createInput([
-            [1, Tokenizer.Type.AL],
-            [2, Tokenizer.Type.AL],
-            [3, Tokenizer.Type.AL]
+            [1, TokenType.AL],
+            [2, TokenType.AL],
+            [3, TokenType.AL]
         ]),
         'correct token, tokenClass and break action': breakAs([
-            [1, Tokenizer.Type.AL, LineBreak.Type.PROHIBITED],
-            [2, Tokenizer.Type.AL, LineBreak.Type.PROHIBITED],
-            [3, Tokenizer.Type.AL, LineBreak.Type.EXPLICIT]
+            [1, TokenType.AL, BreakType.PROHIBITED],
+            [2, TokenType.AL, BreakType.PROHIBITED],
+            [3, TokenType.AL, BreakType.EXPLICIT]
         ])
     },
     'handles soft hyphens (AL, BA, AL, AL)': {
         topic: createInput([
-            [1, Tokenizer.Type.AL],
-            [2, Tokenizer.Type.BA],
-            [3, Tokenizer.Type.AL],
-            [4, Tokenizer.Type.AL]
+            [1, TokenType.AL],
+            [2, TokenType.BA],
+            [3, TokenType.AL],
+            [4, TokenType.AL]
         ]),
         'correct token, tokenClass and break action': breakAs([
-            [1, Tokenizer.Type.AL, LineBreak.Type.PROHIBITED],
-            [2, Tokenizer.Type.BA, LineBreak.Type.DIRECT],
-            [3, Tokenizer.Type.AL, LineBreak.Type.PROHIBITED],
-            [4, Tokenizer.Type.AL, LineBreak.Type.EXPLICIT]
+            [1, TokenType.AL, BreakType.PROHIBITED],
+            [2, TokenType.BA, BreakType.DIRECT],
+            [3, TokenType.AL, BreakType.PROHIBITED],
+            [4, TokenType.AL, BreakType.EXPLICIT]
         ])
     },
     'handles question marks (AL, EX, SP, AL, AL)': {
         topic: createInput([
-            [1, Tokenizer.Type.AL],
-            [2, Tokenizer.Type.EX],
-            [3, Tokenizer.Type.SP],
-            [4, Tokenizer.Type.AL],
-            [5, Tokenizer.Type.AL]
+            [1, TokenType.AL],
+            [2, TokenType.EX],
+            [3, TokenType.SP],
+            [4, TokenType.AL],
+            [5, TokenType.AL]
         ]),
         'correct token, tokenClass and break action': breakAs([
-            [1, Tokenizer.Type.AL, LineBreak.Type.PROHIBITED],
-            [2, Tokenizer.Type.EX, LineBreak.Type.PROHIBITED],
-            [3, Tokenizer.Type.SP, LineBreak.Type.DIRECT],
-            [4, Tokenizer.Type.AL, LineBreak.Type.PROHIBITED],
-            [5, Tokenizer.Type.AL, LineBreak.Type.EXPLICIT]
+            [1, TokenType.AL, BreakType.PROHIBITED],
+            [2, TokenType.EX, BreakType.PROHIBITED],
+            [3, TokenType.SP, BreakType.DIRECT],
+            [4, TokenType.AL, BreakType.PROHIBITED],
+            [5, TokenType.AL, BreakType.EXPLICIT]
         ])
     },
     'handles em dashes (AL, B2, AL, AL)': {
         topic: createInput([
-            [1, Tokenizer.Type.AL],
-            [2, Tokenizer.Type.B2],
-            [3, Tokenizer.Type.AL],
-            [4, Tokenizer.Type.AL]
+            [1, TokenType.AL],
+            [2, TokenType.B2],
+            [3, TokenType.AL],
+            [4, TokenType.AL]
         ]),
         'correct token, tokenClass and break action': breakAs([
-            [1, Tokenizer.Type.AL, LineBreak.Type.DIRECT],
-            [2, Tokenizer.Type.B2, LineBreak.Type.DIRECT],
-            [3, Tokenizer.Type.AL, LineBreak.Type.PROHIBITED],
-            [4, Tokenizer.Type.AL, LineBreak.Type.EXPLICIT]
+            [1, TokenType.AL, BreakType.DIRECT],
+            [2, TokenType.B2, BreakType.DIRECT],
+            [3, TokenType.AL, BreakType.PROHIBITED],
+            [4, TokenType.AL, BreakType.EXPLICIT]
         ])
     }
 }).export(module);

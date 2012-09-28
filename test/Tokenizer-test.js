@@ -1,7 +1,8 @@
 var vows = require('vows'),
     assert = require('assert'),
     Stream = require('stream').Stream,
-    Tokenizer = require('../lib/Tokenizer');
+    tokenizer = require('../lib/tokenizer'),
+    TokenType = require('../lib/TokenType');
 
 function createTestStream(chunks, interval) {
     var stream = new Stream(),
@@ -22,54 +23,54 @@ function createTestStream(chunks, interval) {
 }
 
 function tokenize(str, callback) {
-    var tokenizer = new Tokenizer(),
+    var t = tokenizer.createTokenizer(),
         that = this,
         results = [];
 
-    tokenizer.on('token', function(token, tokenClass) {
+    t.on('token', function(token, tokenClass) {
         results.push(arguments);
     });
 
-    tokenizer.on('end', function() {
+    t.on('end', function() {
         callback(null, results);
     });
 
-    tokenizer.write(str);
-    tokenizer.end();
+    t.write(str);
+    t.end();
 }
 
 vows.describe('Tokenizer').addBatch({
     'is a stream': {
-        topic:  new Tokenizer(),
-        'has the correct methods': function(tokenizer) {
-            assert.instanceOf(tokenizer, Stream);
-            assert.include(tokenizer.prototype, 'end');
-            assert.include(tokenizer.prototype, 'pipe');
-            assert.include(tokenizer.prototype, 'write');
-            assert.include(tokenizer.prototype, 'resume');
-            assert.include(tokenizer.prototype, 'pause');
+        topic:  tokenizer.createTokenizer(),
+        'has the correct methods': function(t) {
+            assert.instanceOf(t, Stream);
+            assert.include(t.prototype, 'end');
+            assert.include(t.prototype, 'pipe');
+            assert.include(t.prototype, 'write');
+            assert.include(t.prototype, 'resume');
+            assert.include(t.prototype, 'pause');
         },
-        'readable and writable': function(tokenizer) {
-            assert.isTrue(tokenizer.readable);
-            assert.isTrue(tokenizer.writable);
+        'readable and writable': function(t) {
+            assert.isTrue(t.readable);
+            assert.isTrue(t.writable);
         }
     },
     'tokenizes in a single chunk': {
         topic: function() {
-            var tokenizer = new Tokenizer(),
+            var t = tokenizer.createTokenizer(),
                 generator = null,
                 that = this,
                 results = [];
 
-            tokenizer.on('token', function() {
+            t.on('token', function() {
                 results.push(arguments);
             });
 
-            tokenizer.on('end', function() {
+            t.on('end', function() {
                 that.callback(null, results);
             });
             generator = createTestStream(['a', '1', '!', ' '], 10);
-            generator.pipe(tokenizer);
+            generator.pipe(t);
         },
         'received four tokens': function(err, results) {
             assert.lengthOf(results, 4);
@@ -81,28 +82,28 @@ vows.describe('Tokenizer').addBatch({
             assert.equal(results[3][0], ' ');
         },
         'have the correct token class': function(err, results) {
-            assert.equal(results[0][1], Tokenizer.Type.AL);
-            assert.equal(results[1][1], Tokenizer.Type.NU);
-            assert.equal(results[2][1], Tokenizer.Type.EX);
-            assert.equal(results[3][1], Tokenizer.Type.SP);
+            assert.equal(results[0][1], TokenType.AL);
+            assert.equal(results[1][1], TokenType.NU);
+            assert.equal(results[2][1], TokenType.EX);
+            assert.equal(results[3][1], TokenType.SP);
         }
     },
     'tokenizes over multiple chunks': {
         topic: function() {
-            var stream = new Tokenizer(),
+            var t = tokenizer.createTokenizer(),
                 that = this,
                 generator = null,
                 results = [];
 
-            stream.on('token', function() {
+            t.on('token', function() {
                 results.push(arguments);
             });
 
-            stream.on('end', function() {
+            t.on('end', function() {
                 that.callback(null, results);
             });
             generator = createTestStream(['hello world!'], 10);
-            generator.pipe(stream);
+            generator.pipe(t);
         },
         'received four tokens': function(err, results) {
             assert.lengthOf(results, 4);
@@ -114,10 +115,10 @@ vows.describe('Tokenizer').addBatch({
             assert.equal(results[3][0], '!');
         },
         'have the correct token class': function(err, results) {
-            assert.equal(results[0][1], Tokenizer.Type.AL);
-            assert.equal(results[1][1], Tokenizer.Type.SP);
-            assert.equal(results[2][1], Tokenizer.Type.AL);
-            assert.equal(results[3][1], Tokenizer.Type.EX);
+            assert.equal(results[0][1], TokenType.AL);
+            assert.equal(results[1][1], TokenType.SP);
+            assert.equal(results[2][1], TokenType.AL);
+            assert.equal(results[3][1], TokenType.EX);
         }
     },
     'parentheses': {
@@ -138,36 +139,36 @@ vows.describe('Tokenizer').addBatch({
     },
     'handles surrogate pairs': {
         topic: function() {
-            var tokenizer = new Tokenizer(),
+            var t = tokenizer.createTokenizer(),
                 that = this;
 
-            tokenizer.on('token', function(token, tokenClass) {
+            t.on('token', function(token, tokenClass) {
                 that.callback(null, [token, tokenClass]);
             });
-            tokenizer.write('\uD834\uDF06');
+            t.write('\uD834\uDF06');
         },
         'received one token': function(err, results) {
             assert.isNotNull(results);
         },
         'token correctly classified as SG': function(err, results) {
-            assert.equal(results[1], Tokenizer.Type.SG);
+            assert.equal(results[1], TokenType.SG);
         }
     },
     'handles tokens outside what the tokenizer is built for': {
         topic: function() {
-            var tokenizer = new Tokenizer(),
+            var t = tokenizer.createTokenizer(),
                 that = this;
 
-            tokenizer.on('token', function(token, tokenClass) {
+            t.on('token', function(token, tokenClass) {
                 that.callback(null, [token, tokenClass]);
             });
-            tokenizer.write('\uF8FF');
+            t.write('\uF8FF');
         },
         'received one token': function(err, results) {
             assert.isNotNull(results);
         },
         'token correctly classified as unknown': function(err, results) {
-            assert.equal(results[1], Tokenizer.Type.XX);
+            assert.equal(results[1], TokenType.XX);
         }
     }
 }).export(module);
